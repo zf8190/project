@@ -35,7 +35,6 @@ async def startup_event():
     try:
         async with get_engine().begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            await conn.run_sync(feed_per_teams.create, checkfirst=True)
         print("✅ Tabelle del database create (se non esistevano)")
     except Exception as e:
         print("❌ Errore nella creazione delle tabelle:", e)

@@ -6,7 +6,7 @@ import logging
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update, delete, and_, or_
 
 from app.models.team import Team
 from app.models.article import Article
@@ -139,4 +139,35 @@ class ArticleAIProcessor:
             logger.info(f"[Team {article.team_id}] Articolo aggiornato salvato correttamente.")
         except Exception as e:
             logger.error(f"[Team {article.team_id}] Errore durante il salvataggio aggiornamento articolo: {e}")
+            await self.db.rollback()
+
+    async def cleanup_feeds(self):
+        """
+        - Elimina i feed processed = True senza team associati (team_id is None).
+        - Reimposta processed = False per i feed processed = True con team associati.
+        """
+        try:
+            # Elimina feed processed=True senza team (team_id is None)
+            delete_stmt = delete(Feed).where(
+                and_(
+                    Feed.processed == True,
+                    or_(Feed.team_id == None, Feed.team_id == 0)  # Modifica '0' se necessario
+                )
+            )
+            await self.db.execute(delete_stmt)
+
+            # Reimposta processed=False per feed processed=True con team associati (team_id not None)
+            update_stmt = update(Feed).where(
+                and_(
+                    Feed.processed == True,
+                    Feed.team_id != None,
+                    Feed.team_id != 0
+                )
+            ).values(processed=False)
+            await self.db.execute(update_stmt)
+
+            await self.db.commit()
+            logger.info("Cleanup feed completato: eliminati feed senza team, resettati feed processed con team.")
+        except Exception as e:
+            logger.error(f"Errore durante cleanup feed: {e}")
             await self.db.rollback()

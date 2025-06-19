@@ -29,6 +29,13 @@ def schedule_jobs():
         id="process_all_teams_articles_job",
         replace_existing=True,
     )
+    scheduler.add_job(
+        lambda: asyncio.create_task(cleanup_feeds_job()),
+        trigger=CronTrigger(minute="10,40", hour="8-22"),
+        id="cleanup_feeds_job",
+        replace_existing=True,
+    )
+
 
 async def feed_ingestion_job():
     print(f"[{datetime.now()}] Starting feed ingestion job...")
@@ -46,6 +53,13 @@ async def feed_association_job():
 async def process_all_teams_articles_job():
     print(f"[{datetime.now()}] Starting process all teams articles job...")
     async with async_session() as db:
-        processor = ArticleAIProcessor(db)   # <-- Istanza della classe
-        await processor.process_all_teams()  # <-- Chiama il metodo di istanza
+        processor = ArticleAIProcessor(db)
+        await processor.process_all_teams()
     print(f"[{datetime.now()}] Process all teams articles job completed.")
+
+async def cleanup_feeds_job():
+    print(f"[{datetime.now()}] Starting cleanup feeds job...")
+    async with async_session() as db:
+        processor = ArticleAIProcessor(db)
+        await processor.cleanup_feeds()
+    print(f"[{datetime.now()}] Cleanup feeds job completed.")

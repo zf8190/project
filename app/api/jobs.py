@@ -5,6 +5,7 @@ from app.scheduler import (
     feed_ingestion_job,
     feed_association_job,
     process_all_teams_articles_job,
+    cleanup_feeds_job,  # <-- Aggiunto qui
 )
 
 router = APIRouter()
@@ -30,5 +31,13 @@ async def run_process_all_teams_articles_job(background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(process_all_teams_articles_job)
         return {"status": "started", "job": "process_all_teams_articles_job", "started_at": str(datetime.utcnow())}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/jobs/cleanup-feeds")
+async def run_cleanup_feeds_job(background_tasks: BackgroundTasks):
+    try:
+        background_tasks.add_task(cleanup_feeds_job)
+        return {"status": "started", "job": "cleanup_feeds_job", "started_at": str(datetime.utcnow())}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

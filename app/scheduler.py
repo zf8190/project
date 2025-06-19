@@ -6,7 +6,9 @@ import asyncio
 from app.db import async_session
 from app.services.feed_ingestion import ingest_feeds
 from app.services.feed_association import FeedTeamAssociatorAI
-from app.services.article_ai import process_all_teams_articles
+from app.services.article_ai import process_all_teams
+
+
 
 scheduler = AsyncIOScheduler()
 
@@ -46,5 +48,5 @@ async def feed_association_job():
 async def process_all_teams_articles_job():
     print(f"[{datetime.now()}] Starting process all teams articles job...")
     async with async_session() as db:
-        await process_all_teams_articles(db)
+        await process_all_teams(db)
     print(f"[{datetime.now()}] Process all teams articles job completed.")

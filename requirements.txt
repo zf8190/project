@@ -1,0 +1,16 @@
+sqlalchemy
+psycopg2-binary
+feedparser
+openai
+python-dotenv
+apscheduler
+fastapi
+uvicorn
+httpx
+# For testing purposes
+pytest
+# For database migrations
+alembic
+# For asynchronous database operations
+asyncpg
+jinja2

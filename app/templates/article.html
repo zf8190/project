@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ article.team.name }} - Top10Market.it</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container article-page">
+
+        <a href="/" class="back-link">← Torna alla Home</a>
+
+        <h1>{{ article.title }}</h1>
+
+        <p class="meta-info">
+            Ultimo aggiornamento: {{ article.last_updated.strftime("%d/%m/%Y %H:%M") }}<br>
+            Fonti: {{ article.sources }}
+        </p>
+
+        <div class="article-body">
+            <p>{{ article.content | safe }}</p>
+        </div>
+
+        <footer class="disclaimer">
+            Contenuti generati con IA
+        </footer>
+    </div>
+</body>
+</html>

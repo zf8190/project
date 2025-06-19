@@ -1,0 +1,137 @@
+/* ====== GENERALE ====== */
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    color: #222;
+}
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 32px;
+}
+
+/* ====== HOMEPAGE ====== */
+
+.article-card {
+    display: flex;
+    background: white;
+    margin-bottom: 24px;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: black;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s;
+}
+
+.article-card:hover {
+    transform: scale(1.02);
+}
+
+.logo-wrapper {
+    width: 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #eef2f5;
+}
+
+.team-logo {
+    max-width: 80%;
+    max-height: 100px;
+    opacity: 0.5;
+}
+
+.article-content {
+    padding: 16px;
+    width: 70%;
+}
+
+.article-content h2 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+}
+
+.summary {
+    font-size: 0.95rem;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.team-name {
+    font-weight: bold;
+    color: #888;
+    font-size: 0.85rem;
+}
+
+.meta-info {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 8px;
+}
+
+/* ====== PAGINA ARTICOLO ====== */
+
+.article-page .back-link {
+    display: inline-block;
+    margin-bottom: 16px;
+    color: #0077cc;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.article-page .back-link:hover {
+    text-decoration: underline;
+}
+
+.article-page h1 {
+    font-size: 1.8rem;
+    line-height: 1.3;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.article-page .meta-info {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.article-body {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #333;
+    text-align: justify;
+    margin-bottom: 40px;
+}
+
+/* ====== DISCLAIMER ====== */
+
+.disclaimer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 40px;
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+}
+/* ====== FOOTER ====== */
+.footer {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 40px;
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+}

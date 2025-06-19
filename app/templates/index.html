@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top10Market.it</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Top 10 Squadre Serie A – Calciomercato</h1>
+
+        {% for article in articles %}
+            <a href="/team/{{ article.team.name | lower }}" class="article-card">
+                <div class="logo-wrapper">
+                    <img src="{{ article.team.logo_url }}" alt="{{ article.team.name }}" class="team-logo">
+                </div>
+                <div class="article-content">
+                    <h2>{{ article.title }}</h2>
+                    <p class="summary">{{ article.summary }}</p>
+                    <p class="team-name">{{ article.team.name }}</p>
+                    <p class="meta-info">
+                        Aggiornato il {{ article.last_updated.strftime("%d/%m/%Y %H:%M") }}<br>
+                        Fonti: {{ article.sources }}
+                    </p>
+                </div>
+            </a>
+        {% endfor %}
+
+        <footer class="disclaimer">
+            Contenuti generati con IA
+        </footer>
+    </div>
+</body>
+</html>

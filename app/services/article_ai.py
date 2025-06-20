@@ -78,11 +78,11 @@ class ArticleAIProcessor:
         combined_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Crea un articolo originale e dettagliato basandoti esclusivamente sui seguenti feed.\n"
-            "Non sintetizzare, ma riorganizza accorpando i feed che parando degli stessi argomenti. \n"
-            "Dividi poi in diversi punti che separerai andando a capo per una miglior leggibilità.\n"
+            "Leggi questi feed e crea un articolo originale, discorsivo e più lungo possibile in base alle notizie che hai appreso esclusivamente da questi feed.\n"
+            "Non sintetizzare, ma tieni ben divisi i diversi argomenti che hai appreso. \n"
+            "Separa eventualmente gli argomenti andando a capo per una miglior leggibilità.\n"
             f"Feed:\n{combined_text}\n\n"
-            "Rispondi in JSON con due campi: 'title' e 'content'."
+            "Rispondi in JSON con due stringe, la prima è un solo titolo breve e la seconda l'articolo vero e proprio: 'title' e 'content'."
         )
         try:
             response = await client.chat.completions.create(
@@ -114,12 +114,12 @@ class ArticleAIProcessor:
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Aggiorna questo articolo integrando le nuove informazioni, "
-            "Mantenendo e/o aggiornando tutte le informazioni utili già presenti.\n"
-            "Mantieni il formato della divisione in diversi punti separati andando a capo per una miglior leggibilità.\n"
+            "Aggiorna l'articolo esistente considerando le nuove notizie, "
+            "Leggi l'articolo e i feed e capisci se ci sono aggiornamenti o nuove notizie\n"
+            "Aggiorna le parti obsolete e integra le nuove notizie tenendo il formato di un articolo discorsivo e lungo con i diversi punti per una miglior leggibilità.\n"
             f"Articolo esistente:\n{article.content}\n\n"
             f"Nuove notizie:\n{combined_new_text}\n\n"
-            "Rispondi in JSON con 'title' e 'content' aggiornati."
+            "Rispondi in JSON con due stringe, la prima è un solo titolo breve e la seconda l'articolo vero e proprio: 'title' e 'content'."
         )
         try:
             response = await client.chat.completions.create(

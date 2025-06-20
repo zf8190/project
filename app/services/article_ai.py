@@ -114,9 +114,9 @@ class ArticleAIProcessor:
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Aggiorna l'articolo esistente considerando le nuove notizie, "
-            "Leggi l'articolo e i feed e capisci se ci sono aggiornamenti o nuove notizie\n"
-            "Aggiorna le parti obsolete e integra le nuove notizie tenendo il formato di un articolo discorsivo e lungo con i diversi punti per una miglior leggibilità.\n"
+            "Leggi questi feed e l'articolo esistente e crea un nuovo articolo originale, discorsivo e più lungo possibile in base alle notizie che hai appreso esclusivamente da questi feed.\n"
+            "Non sintetizzare, ma tieni ben divisi i diversi argomenti che hai appreso. \n"
+            "Separa eventualmente gli argomenti andando a capo per una miglior leggibilità.\n"
             f"Articolo esistente:\n{article.content}\n\n"
             f"Nuove notizie:\n{combined_new_text}\n\n"
             "Rispondi in JSON con due stringe, la prima è un solo titolo breve e la seconda l'articolo vero e proprio: 'title' e 'content'."
@@ -149,11 +149,12 @@ class ArticleAIProcessor:
         - Reimposta processed = False per i feed processed = True con team associati.
         """
         try:
-            # Elimina feed processed=True senza team (team_id is None)
+            # Elimina feed processed=False con team (team_id is not None)
             delete_stmt = delete(Feed).where(
                 and_(
-                    Feed.processed == True,
-                    or_(Feed.team_id == None, Feed.team_id == 0)  # Modifica '0' se necessario
+                    Feed.processed == False,
+                    Feed.team_id != None,
+                    Feed.team_id != 0
                 )
             )
             await self.db.execute(delete_stmt)

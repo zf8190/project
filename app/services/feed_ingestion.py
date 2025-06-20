@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.feed import Feed
-from app.config.feed_team_map import FEED_TEAM_MAP  # ✅ ora unica fonte
+from app.feed_config.feed_team_map import FEED_TEAM_MAP  # ✅ ora unica fonte
 import datetime
 
 MAX_LEN = 255

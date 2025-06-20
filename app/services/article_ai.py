@@ -79,7 +79,8 @@ class ArticleAIProcessor:
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
             "Crea un articolo originale e dettagliato basandoti esclusivamente sui seguenti feed.\n"
-            "Non sintetizzare, ma riorganizza le informazioni in modo chiaro.\n"
+            "Non sintetizzare, ma riorganizza accorpando i feed che parando degli stessi argomenti. \n"
+            "Dividi poi in diversi punti che separerai andando a capo per una miglior leggibilità.\n"
             f"Feed:\n{combined_text}\n\n"
             "Rispondi in JSON con due campi: 'title' e 'content'."
         )
@@ -114,7 +115,8 @@ class ArticleAIProcessor:
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
             "Aggiorna questo articolo integrando le nuove informazioni, "
-            "mantenendo e aggiornando tutte le informazioni utili già presenti.\n"
+            "Mantenendo e/o aggiornando tutte le informazioni utili già presenti.\n"
+            "Mantieni il formato della divisione in diversi punti separati andando a capo per una miglior leggibilità.\n"
             f"Articolo esistente:\n{article.content}\n\n"
             f"Nuove notizie:\n{combined_new_text}\n\n"
             "Rispondi in JSON con 'title' e 'content' aggiornati."

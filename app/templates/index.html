@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Top 10 Squadre Serie A – Calciomercato</h1>
+        <h1>Calciomercato AI</h1>
 
         {% for article in articles %}
             <a href="/team/{{ article.team.name | lower }}" class="article-card">
@@ -21,7 +21,7 @@
                     <p class="team-name">{{ article.team.name }}</p>
                     <p class="meta-info">
                         Aggiornato il {{ article.last_updated.strftime("%d/%m/%Y %H:%M") }}<br>
-                        Fonti: {{ article.sources }}
+                        Fonti: x.com <!--{{ article.sources }}-->
                     </p>
                 </div>
             </a>

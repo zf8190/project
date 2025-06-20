@@ -1,11 +1,9 @@
-# app/services/feed_ingestion.py
-
 import feedparser
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.feed import Feed
-from app.config import load_rss_feeds
+from app.config.feed_team_map import FEED_TEAM_MAP  # ✅ ora unica fonte
 import datetime
 
 MAX_LEN = 255
@@ -19,10 +17,9 @@ def truncate_string(s: str, max_len: int = MAX_LEN) -> str:
     return s[:max_len]
 
 async def ingest_feeds(db: AsyncSession):
-    rss_urls = load_rss_feeds()
     new_count = 0
 
-    for rss_url in rss_urls:
+    for rss_url, team_id in FEED_TEAM_MAP.items():
         try:
             d = feedparser.parse(rss_url)
             feed_source = truncate_string(rss_url)
@@ -46,7 +43,10 @@ async def ingest_feeds(db: AsyncSession):
                 title = truncate_string(getattr(entry, "title", ""))
                 link = truncate_string(getattr(entry, "link", ""))
                 summary = truncate_string(getattr(entry, "summary", ""))
-                content = entry.get("content", [{"value": ""}])[0]["value"]
+
+                content = ""
+                if "content" in entry and entry["content"]:
+                    content = entry["content"][0].get("value", "")
 
                 try:
                     published_at = datetime.datetime(*entry.published_parsed[:6])
@@ -62,7 +62,7 @@ async def ingest_feeds(db: AsyncSession):
                     content=content,
                     published_at=published_at,
                     processed=False,
-                    team_id=None  # temporaneo nullable
+                    team_id=team_id  # ✅ già noto dalla mappa
                 )
 
                 db.add(new_feed)

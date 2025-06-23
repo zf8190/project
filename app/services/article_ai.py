@@ -83,7 +83,7 @@ class ArticleAIProcessor:
             "L'articolo che stai scrivendo avrà quindi diversi paragrafi relativi allo stesso giocatore/evento\n"
             "Delimita ogni paragrafo andando a capo con l'espressione <br> \n"
             f"Feed:\n{combined_text}\n\n"
-            "Rispondi in JSON con due stringe, la prima è un solo titolo breve e la seconda l'articolo vero e proprio: 'title' e 'content'."
+            "Rispondi esclusivamente con un oggetto JSON valido, senza testo aggiuntivo o spiegazioni nel formato 'title' e 'content'."
         )
         try:
             response = await client.chat.completions.create(
@@ -121,7 +121,7 @@ class ArticleAIProcessor:
             "Delimita ogni paragrafo andando a capo con l'espressione <br> \n"
             f"Articolo esistente:\n{article.content}\n\n"
             f"Nuove notizie:\n{combined_new_text}\n\n"
-            "Rispondi in JSON con due stringe, la prima è un solo titolo breve e la seconda l'articolo vero e proprio: 'title' e 'content'."
+            "Rispondi esclusivamente con un oggetto JSON valido, senza testo aggiuntivo o spiegazioni nel formato 'title' e 'content'."
         )
         try:
             response = await client.chat.completions.create(

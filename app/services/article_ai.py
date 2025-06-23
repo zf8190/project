@@ -99,10 +99,9 @@ class ArticleAIProcessor:
         combined_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed e cerca di capire quali sono le notizie di calciomercato dal punto di vista del team {team.name},\n"
-            "Basandoti solo su questi feed, senza info pregresse scrivi un articolo suddiviso in piu paragrafi,\n"
-            "Suddividi quindi il contenuto dell'articolo che stai scrivendo in tematiche non ripetitive\n"
-            "ogni tematica ha il proprio paragrafo, delimita poi i vari paragagrafi con l'espressione <br>\n"
+            "Leggi questi feed di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed.\n"
+            "Cerca di non essere ripetitivo ma accorpa in frasi le notizie su calciatori/eventi simili.\n"
+            "Separa le diverse frasi con l'espressione <br>.\n"
             f"Feed:\n{combined_text}\n\n"
             "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "
             "nel formato {'title': ..., 'content': ...}."
@@ -140,12 +139,11 @@ class ArticleAIProcessor:
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed e cerca di capire quali sono le notizie di calciomercato dal punto di vista del team {team.name},\n"
-            "Basandoti solo su questi feed, e le info pregresse scrivi un articolo suddiviso in piu paragrafi,\n"
-            "Suddividi quindi il contenuto dell'articolo che stai scrivendo in tematiche non ripetitive\n"
-            "ogni tematica ha il proprio paragrafo, delimita poi i vari paragagrafi con l'espressione <br>\n"
-            f"Feed:\n{combined_new_text}\n\n"
-            f"info pregresse:\n{article.content}\n\n"
+            "Leggi questi feed nuovi di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed e su quelli accorpati prima.\n"
+            "Cerca di non essere ripetitivo ma accorpa in frasi le notizie su calciatori/eventi simili.\n"
+            "Separa le diverse frasi con l'espressione <br>.\n"
+            f"feed_accorpati:\n{article.content}\n\n"
+            f"feed_nuovi:\n{combined_new_text}\n\n"
             "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "
             "nel formato {'title': ..., 'content': ...}."
         )
@@ -191,7 +189,7 @@ class ArticleAIProcessor:
             # Reimposta processed=False per feed processed=True con team associati (team_id not None)
             update_stmt = update(Feed).where(
                 and_(
-                    Feed.processed == False,
+                    Feed.processed == True,
                     Feed.team_id != None,
                     Feed.team_id != 0
                 )

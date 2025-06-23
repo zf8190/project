@@ -134,6 +134,8 @@ class ArticleAIProcessor:
             logger.info(f"[Team {article.team_id}] Articolo aggiornato con successo.")
         except Exception as e:
             logger.error(f"[Team {article.team_id}] Errore OpenAI durante aggiornamento articolo: {e}")
+            logger.debug(f"[Team {article.team_id}] Contenuto title fallito: {data.get('title')}")
+            logger.debug(f"[Team {article.team_id}] Contenuto content fallito: {data.get('content')}")
             data = {"title": article.title, "content": article.content}
 
         try:
@@ -143,8 +145,6 @@ class ArticleAIProcessor:
             logger.info(f"[Team {article.team_id}] Articolo aggiornato salvato correttamente.")
         except Exception as e:
             logger.error(f"[Team {article.team_id}] Errore durante il salvataggio aggiornamento articolo: {e}")
-            logger.debug(f"[Team {article.team_id}] Contenuto title fallito: {data.get('title')}")
-            logger.debug(f"[Team {article.team_id}] Contenuto content fallito: {data.get('content')}")
             await self.db.rollback()
 
     async def cleanup_feeds(self):

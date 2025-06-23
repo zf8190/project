@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from typing import List
+from typing import List, Union
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, and_
@@ -17,7 +17,6 @@ MODEL = "gpt-3.5-turbo"
 
 logger = logging.getLogger("ArticleAIProcessor")
 logger.setLevel(logging.INFO)
-# Configura un handler base, lo puoi personalizzare nel main
 if not logger.hasHandlers():
     ch = logging.StreamHandler()
     formatter = logging.Formatter('[%(asctime)s] %(levelname)s: %(message)s')
@@ -29,7 +28,7 @@ class ArticleAIProcessor:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    def _normalize_str(self, value):
+    def _normalize_str(self, value: Union[str, List[str], None]) -> str:
         if isinstance(value, list):
             return "\n".join(str(v) for v in value)
         if value is None:
@@ -79,25 +78,44 @@ class ArticleAIProcessor:
         )
         return result.scalars().all()
 
+    async def _parse_openai_response(self, raw_content: str, team_name: str) -> dict:
+        try:
+            data = json.loads(raw_content)
+            if isinstance(data, list):
+                if len(data) > 0 and isinstance(data[0], dict):
+                    data = data[0]
+                else:
+                    logger.warning(f"[Team {team_name}] OpenAI response is a list but does not contain dict, using empty dict.")
+                    data = {}
+            elif not isinstance(data, dict):
+                logger.warning(f"[Team {team_name}] OpenAI response is not a dict, got {type(data)}, using empty dict.")
+                data = {}
+            return data
+        except json.JSONDecodeError as e:
+            logger.error(f"[Team {team_name}] JSONDecodeError parsing OpenAI response: {e}")
+            return {}
+
     async def _generate_new_article(self, team: Team, feeds: List[Feed]):
         combined_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamenete su questi feed\n"
-            "Suddividi l'articolo in diversi punti, elaborando e accorpando le varie notizie sullo stesso giocatore/evento senza essere ripetitivo \n"
-            "L'articolo che stai scrivendo avrà quindi diversi paragrafi relativi allo stesso giocatore/evento\n"
-            "Delimita ogni paragrafo andando a capo con l'espressione <br> \n"
+            "Leggi questi feed di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed.\n"
+            "Suddividi l'articolo in diversi punti, elaborando e accorpando le varie notizie sullo stesso giocatore/evento senza essere ripetitivo.\n"
+            "L'articolo che stai scrivendo avrà diversi paragrafi relativi allo stesso giocatore/evento.\n"
+            "Delimita ogni paragrafo andando a capo con l'espressione <br>.\n"
             f"Feed:\n{combined_text}\n\n"
-            "Rispondi esclusivamente con un oggetto JSON valido, senza testo aggiuntivo o spiegazioni nel formato 'title' e 'content'."
+            "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "
+            "nel formato {'title': ..., 'content': ...}."
         )
         try:
             response = await client.chat.completions.create(
                 model=MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=1000,
+                max_tokens=1500,
             )
-            data = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content
+            data = await self._parse_openai_response(raw_content, team.name)
             logger.info(f"[Team {team.name}] Articolo generato con successo.")
         except Exception as e:
             logger.error(f"[Team {team.name}] Errore OpenAI durante generazione articolo: {e}")
@@ -122,22 +140,25 @@ class ArticleAIProcessor:
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed  e l'articolo che avevi già scritto precedentemente di calciomercato. scrivi un articolo lungo e articolato basandoti esclusivamenete su questi feed e l'articolo\n"
-            "Suddividi l'articolo in diversi punti, elaborando e accorpando le varie notizie sullo stesso giocatore/evento senza essere ripetitivo \n"
-            "L'articolo che stai scrivendo avrà quindi diversi paragrafi relativi allo stesso giocatore/evento\n"
-            "Delimita ogni paragrafo andando a capo con l'espressione <br> \n"
+            "Leggi questi feed e l'articolo che avevi già scritto precedentemente di calciomercato.\n"
+            "Scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed e sull'articolo esistente.\n"
+            "Suddividi l'articolo in diversi punti, elaborando e accorpando le varie notizie sullo stesso giocatore/evento senza essere ripetitivo.\n"
+            "L'articolo che stai scrivendo avrà diversi paragrafi relativi allo stesso giocatore/evento.\n"
+            "Delimita ogni paragrafo andando a capo con l'espressione <br>.\n"
             f"Articolo esistente:\n{article.content}\n\n"
             f"Nuove notizie:\n{combined_new_text}\n\n"
-            "Rispondi esclusivamente con un oggetto JSON valido, senza testo aggiuntivo o spiegazioni nel formato 'title' e 'content'."
+            "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "
+            "nel formato {'title': ..., 'content': ...}."
         )
         try:
             response = await client.chat.completions.create(
                 model=MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=1000,
+                max_tokens=1500,
             )
-            data = json.loads(response.choices[0].message.content)
+            raw_content = response.choices[0].message.content
+            data = await self._parse_openai_response(raw_content, f"team_id {article.team_id}")
             logger.info(f"[Team {article.team_id}] Articolo aggiornato con successo.")
         except Exception as e:
             logger.error(f"[Team {article.team_id}] Errore OpenAI durante aggiornamento articolo: {e}")
@@ -154,7 +175,7 @@ class ArticleAIProcessor:
 
     async def cleanup_feeds(self):
         """
-        - Elimina i feed processed = True senza team associati (team_id is None).
+        - Elimina i feed processed = False con team associati (team_id not None).
         - Reimposta processed = False per i feed processed = True con team associati.
         """
         try:

@@ -1,12 +1,10 @@
-# app/services/article_ai.py
-
 import os
 import json
 import logging
 from typing import List
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, and_, or_
+from sqlalchemy import select, update, delete, and_
 
 from app.models.team import Team
 from app.models.article import Article
@@ -30,6 +28,13 @@ if not logger.hasHandlers():
 class ArticleAIProcessor:
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    def _normalize_str(self, value):
+        if isinstance(value, list):
+            return "\n".join(str(v) for v in value)
+        if value is None:
+            return ""
+        return str(value)
 
     async def process_all_teams(self):
         try:
@@ -99,10 +104,12 @@ class ArticleAIProcessor:
             data = {"title": f"Aggiornamenti {team.name}", "content": "Errore nella generazione dell'articolo."}
 
         try:
+            title = self._normalize_str(data.get("title", f"Aggiornamenti {team.name}"))
+            content = self._normalize_str(data.get("content", ""))
             new_article = Article(
                 team_id=team.id,
-                title=data.get("title", f"Aggiornamenti {team.name}"),
-                content=data.get("content", ""),
+                title=title,
+                content=content,
             )
             self.db.add(new_article)
             await self.db.commit()
@@ -137,8 +144,8 @@ class ArticleAIProcessor:
             data = {"title": article.title, "content": article.content}
 
         try:
-            article.title = data.get("title", article.title)
-            article.content = data.get("content", article.content)
+            article.title = self._normalize_str(data.get("title", article.title))
+            article.content = self._normalize_str(data.get("content", article.content))
             await self.db.commit()
             logger.info(f"[Team {article.team_id}] Articolo aggiornato salvato correttamente.")
         except Exception as e:

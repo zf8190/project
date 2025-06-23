@@ -139,9 +139,10 @@ class ArticleAIProcessor:
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed nuovi di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed e su quelli accorpati prima.\n"
-            "Cerca di non essere ripetitivo ma accorpa in frasi le notizie su calciatori/eventi simili.\n"
-            "Separa le diverse frasi con l'espressione <br>.\n"
+            "Leggi questi feed nuovi di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed e su quelli accorpati prima,\n"
+            "Cerca di non essere ripetitivo ma accorpa in frasi le notizie su calciatori/eventi simili,\n"
+            "Non fare titoli sensazionalistici ed evita di citare le fonti,\n"
+            "Separa gli argomenti diversi con l'espressione '<br>'.\n"
             f"feed_accorpati:\n{article.content}\n\n"
             f"feed_nuovi:\n{combined_new_text}\n\n"
             "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "

@@ -78,9 +78,10 @@ class ArticleAIProcessor:
         combined_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed e crea un articolo originale, discorsivo e più lungo possibile in base alle notizie che hai appreso esclusivamente da questi feed.\n"
-            "Non sintetizzare, ma tieni ben divisi i diversi argomenti che hai appreso. \n"
-            "Separa eventualmente gli argomenti andando a capo per una miglior leggibilità.\n"
+            "Leggi questi feed di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamenete su questi feed\n"
+            "Suddividi l'articolo in diversi punti, elaborando e accorpando le varie notizie sullo stesso giocatore/evento senza essere ripetitivo \n"
+            "L'articolo che stai scrivendo avrà quindi diversi paragrafi relativi allo stesso giocatore/evento\n"
+            "Delimita ogni paragrafo andando a capo con l'espressione <br> \n"
             f"Feed:\n{combined_text}\n\n"
             "Rispondi in JSON con due stringe, la prima è un solo titolo breve e la seconda l'articolo vero e proprio: 'title' e 'content'."
         )
@@ -114,9 +115,10 @@ class ArticleAIProcessor:
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed e l'articolo esistente e crea un nuovo articolo originale, discorsivo e più lungo possibile in base alle notizie che hai appreso esclusivamente da questi feed.\n"
-            "Non sintetizzare, ma tieni ben divisi i diversi argomenti che hai appreso. \n"
-            "Separa eventualmente gli argomenti andando a capo per una miglior leggibilità.\n"
+            "Leggi questi feed  e l'articolo che avevi già scritto precedentemente di calciomercato. scrivi un articolo lungo e articolato basandoti esclusivamenete su questi feed e l'articolo\n"
+            "Suddividi l'articolo in diversi punti, elaborando e accorpando le varie notizie sullo stesso giocatore/evento senza essere ripetitivo \n"
+            "L'articolo che stai scrivendo avrà quindi diversi paragrafi relativi allo stesso giocatore/evento\n"
+            "Delimita ogni paragrafo andando a capo con l'espressione <br> \n"
             f"Articolo esistente:\n{article.content}\n\n"
             f"Nuove notizie:\n{combined_new_text}\n\n"
             "Rispondi in JSON con due stringe, la prima è un solo titolo breve e la seconda l'articolo vero e proprio: 'title' e 'content'."

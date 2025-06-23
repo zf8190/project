@@ -15,7 +15,7 @@ from app.models.feed import Feed
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-MODEL = "gpt-3.5-turbo"
+MODEL = "gpt-4"
 
 logger = logging.getLogger("ArticleAIProcessor")
 logger.setLevel(logging.INFO)

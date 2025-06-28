@@ -14,3 +14,4 @@ alembic
 # For asynchronous database operations
 asyncpg
 jinja2
+newspaper

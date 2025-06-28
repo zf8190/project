@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.models.feed import Feed
 from app.feed_config.feed_team_map import FEED_TEAM_MAP  # ✅ ora unica fonte
+from app.services.feed_cleanup import sgr_ezza_feeds
 import datetime
 
 MAX_LEN = 255
@@ -77,3 +78,9 @@ async def ingest_feeds(db: AsyncSession):
         logger.info(f"[FeedIngestion] Inseriti {new_count} nuovi feed.")
     except Exception as e:
         logger.error(f"[FeedIngestion] Errore durante commit DB: {e}")
+    
+    try:
+        sgrezzati = await sgr_ezza_feeds(db)
+        logger.info(f"[FeedIngestion] Sgrezzati {sgrezzati} feed più vecchi di 24h.")
+    except Exception as e:
+        logger.error(f"[FeedIngestion] Errore durante sgr_ezza_feeds: {e}")

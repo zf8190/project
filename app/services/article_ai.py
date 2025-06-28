@@ -28,6 +28,16 @@ class ArticleAIProcessor:
     def __init__(self, db: AsyncSession):
         self.db = db
 
+    async def _mark_feeds_as_processed(self, feeds: List[Feed]):
+        for feed in feeds:
+            feed.processed = True
+            self.db.add(feed)
+        try:
+            await self.db.commit()
+        except Exception as e:
+            logger.error(f"Errore durante il salvataggio dei feed marcati come processed: {e}")
+            await self.db.rollback()
+
     def _normalize_str(self, value: Union[str, List[str], None]) -> str:
         if isinstance(value, list):
             return "\n".join(str(v) for v in value)
@@ -116,6 +126,8 @@ class ArticleAIProcessor:
             raw_content = response.choices[0].message.content
             data = await self._parse_openai_response(raw_content, team.name)
             logger.info(f"[Team {team.name}] Articolo generato con successo.")
+            await self._mark_feeds_as_processed(feeds)
+
         except Exception as e:
             logger.error(f"[Team {team.name}] Errore OpenAI durante generazione articolo: {e}")
             data = {"title": f"Aggiornamenti {team.name}", "content": "Errore nella generazione dell'articolo."}
@@ -158,6 +170,8 @@ class ArticleAIProcessor:
             raw_content = response.choices[0].message.content
             data = await self._parse_openai_response(raw_content, f"team_id {article.team_id}")
             logger.info(f"[Team {article.team_id}] Articolo aggiornato con successo.")
+            await self._mark_feeds_as_processed(feeds)
+
         except Exception as e:
             logger.error(f"[Team {article.team_id}] Errore OpenAI durante aggiornamento articolo: {e}")
             data = {"title": article.title, "content": article.content}

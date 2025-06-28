@@ -7,7 +7,7 @@ from app.feed_config.feed_team_map import FEED_TEAM_MAP  # ✅ ora unica fonte
 from app.services.feed_cleanup import sgr_ezza_feeds
 import datetime
 
-MAX_LEN = 255
+MAX_LEN = 1024
 
 logger = logging.getLogger("feed_ingestion")
 logger.setLevel(logging.INFO)

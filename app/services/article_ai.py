@@ -194,9 +194,9 @@ class ArticleAIProcessor:
             # Elimina feed processed=False con team (team_id is not None)
             delete_stmt = delete(Feed).where(
                 and_(
-                    Feed.processed == False,
-                    Feed.team_id != None,
-                    Feed.team_id != 0
+                    Feed.processed == True#,
+                    #Feed.team_id != None,
+                    #Feed.team_id != 0
                 )
             )
             await self.db.execute(delete_stmt)

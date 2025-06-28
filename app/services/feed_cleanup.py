@@ -4,12 +4,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.feed import Feed
 from newspaper import Article
 import logging
+import requests  # import requests per risolvere redirect
 
 logger = logging.getLogger("FeedEnricher")
 
 async def fetch_article_content(url: str) -> str:
     try:
-        article = Article(url)
+        # Risolvo il link originale da Google News RSS redirect
+        response = requests.head(url, allow_redirects=True)
+        original_url = response.url
+
+        article = Article(original_url)
         article.download()
         article.parse()
         return article.text

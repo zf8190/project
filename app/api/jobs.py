@@ -5,7 +5,8 @@ from app.scheduler import (
     feed_ingestion_job,
     feed_association_job,
     process_all_teams_articles_job,
-    cleanup_feeds_job,  # <-- Aggiunto qui
+    cleanup_feeds_job,
+    enrich_feed_contents_job,  # Importa il nuovo job
 )
 
 router = APIRouter()
@@ -39,5 +40,13 @@ async def run_cleanup_feeds_job(background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(cleanup_feeds_job)
         return {"status": "started", "job": "cleanup_feeds_job", "started_at": str(datetime.utcnow())}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/jobs/enrich-feed-content")
+async def run_enrich_feed_content_job(background_tasks: BackgroundTasks):
+    try:
+        background_tasks.add_task(enrich_feed_contents_job)
+        return {"status": "started", "job": "enrich_feed_contents_job", "started_at": str(datetime.utcnow())}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

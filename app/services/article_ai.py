@@ -155,7 +155,7 @@ class ArticleAIProcessor:
             "Cerca di non essere ripetitivo ma accorpa in frasi le notizie su calciatori/eventi simili,\n"
             "Non fare titoli sensazionalistici ed evita di citare le fonti,\n"
             "Separa gli argomenti diversi con l'espressione '<br>'.\n"
-            f"feed_accorpati:\n{article.content}\n\n"
+            #f"feed_accorpati:\n{article.content}\n\n"
             f"feed_nuovi:\n{combined_new_text}\n\n"
             "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "
             "nel formato {'title': ..., 'content': ...}."
@@ -208,7 +208,7 @@ class ArticleAIProcessor:
                     Feed.team_id != None,
                     Feed.team_id != 0
                 )
-            ).values(processed=True)
+            ).values(processed=False)
             await self.db.execute(update_stmt)
 
             await self.db.commit()

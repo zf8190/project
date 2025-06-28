@@ -17,3 +17,4 @@ jinja2
 newspaper3k
 lxml_html_clean
 requests
+beautifulsoup4>=4.12.0

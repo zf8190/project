@@ -2,6 +2,7 @@
 import logging
 import requests
 from newspaper import Article
+from bs4 import BeautifulSoup
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.feed import Feed
@@ -18,12 +19,6 @@ class FeedContentFetcher:
         self.db = db
 
     async def enrich_feed_content(self) -> int:
-        """
-        Cerca tutti i feed non processati, con team associato e senza content.
-        Tenta di risolvere il link dell'articolo e salvare il contenuto.
-
-        :return: numero di feed aggiornati con contenuto.
-        """
         result = await self.db.execute(
             select(Feed).where(
                 Feed.processed == False,
@@ -32,13 +27,11 @@ class FeedContentFetcher:
             )
         )
         feeds = result.scalars().all()
-
         updated_count = 0
 
         for feed in feeds:
             try:
                 logger.info(f"Feed ID {feed.id} - Link dal DB: {repr(feed.link)}")
-
                 resolved_url = self.resolve_final_url(feed.link)
                 logger.info(f"Feed ID {feed.id} - Link risolto: {repr(resolved_url)}")
 
@@ -65,9 +58,6 @@ class FeedContentFetcher:
         return updated_count
 
     def resolve_final_url(self, url: str) -> str:
-        """
-        Usa requests.head per seguire eventuali redirect e ottenere l'URL finale.
-        """
         try:
             logger.info(f"Resolving URL: {repr(url)}")
             response = requests.head(url, allow_redirects=True, timeout=5)
@@ -80,15 +70,35 @@ class FeedContentFetcher:
 
     def extract_article_content(self, url: str) -> str:
         """
-        Usa newspaper per scaricare e parsare il contenuto testuale dell'articolo.
+        Tenta prima con Newspaper3k, poi fallback con BeautifulSoup se fallisce o il testo è troppo corto.
         """
         try:
-            logger.info(f"Estrazione contenuto da URL: {repr(url)}")
+            logger.info(f"Estrazione contenuto da URL con newspaper: {repr(url)}")
             article = Article(url)
             article.download()
             article.parse()
-            logger.info(f"Contenuto estratto di lunghezza: {len(article.text)}")
-            return article.text
+            if len(article.text) > 100:
+                logger.info(f"Contenuto estratto con newspaper, lunghezza: {len(article.text)}")
+                return article.text
+            else:
+                logger.warning(f"Contenuto troppo corto con newspaper, si prova fallback BeautifulSoup.")
         except Exception as e:
-            logger.error(f"Errore estraendo contenuto da {url}: {e}")
+            logger.error(f"Errore con newspaper per {url}: {e}")
+
+        # Fallback: BeautifulSoup
+        try:
+            logger.info(f"Tentativo fallback con BeautifulSoup per URL: {repr(url)}")
+            response = requests.get(url, timeout=10)
+            soup = BeautifulSoup(response.content, 'html.parser')
+            paragraphs = soup.find_all('p')
+            text = "\n".join(p.get_text() for p in paragraphs if len(p.get_text()) > 20)
+
+            if len(text) > 100:
+                logger.info(f"Contenuto estratto con fallback BeautifulSoup, lunghezza: {len(text)}")
+                return text
+            else:
+                logger.warning(f"Fallback BeautifulSoup: contenuto ancora troppo corto")
+                return ""
+        except Exception as e:
+            logger.error(f"Errore nel fallback BeautifulSoup per {url}: {e}")
             return ""

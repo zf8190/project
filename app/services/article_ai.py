@@ -109,9 +109,11 @@ class ArticleAIProcessor:
         combined_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
             "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed.\n"
-            "Cerca di non essere ripetitivo ma accorpa in frasi le notizie su calciatori/eventi simili.\n"
-            "Separa le diverse frasi con l'espressione <br>.\n"
+            "Leggi questi feed di calciomercato, molti sono ripetitivi dello stesso argomento,\n"
+            "cerca di capire quali sono gli argomenti principali dal punto di vista del team {team.name},\n"
+            "Scrivi un articolo discorsivo, in diverse frasi e non essere ripetitivo.\n"
+            "Ogni argomento deve essere trattato una sola volta. Non prendere informazioni da altre fonti oltre che queste fornite,\n"
+            "Non citare le fonti e non usare espressioni sensazionalistiche.\n"
             f"Feed:\n{combined_text}\n\n"
             "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "
             "nel formato {'title': ..., 'content': ...}."
@@ -150,11 +152,12 @@ class ArticleAIProcessor:
     async def _update_existing_article(self, article: Article, feeds: List[Feed]):
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
-            "Sei un giornalista sportivo esperto di calciomercato.\n"
-            "Leggi questi feed nuovi di calciomercato e scrivi un articolo lungo e articolato basandoti esclusivamente su questi feed e su quelli accorpati prima,\n"
-            "Cerca di non essere ripetitivo ma accorpa in frasi le notizie su calciatori/eventi simili,\n"
-            "Non fare titoli sensazionalistici ed evita di citare le fonti,\n"
-            "Separa gli argomenti diversi con l'espressione '<br>'.\n"
+            Sei un giornalista sportivo esperto di calciomercato.\n"
+            "Leggi questi feed di calciomercato, molti sono ripetitivi dello stesso argomento,\n"
+            "cerca di capire quali sono gli argomenti principali dal punto di vista del team {team.name},\n"
+            "Scrivi un articolo discorsivo, in diverse frasi e non essere ripetitivo.\n"
+            "Ogni argomento deve essere trattato una sola volta. Non prendere informazioni da altre fonti oltre che queste fornite,\n"
+            "Non citare le fonti e non usare espressioni sensazionalistiche.\n"
             #f"feed_accorpati:\n{article.content}\n\n"
             f"feed_nuovi:\n{combined_new_text}\n\n"
             "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "

@@ -152,7 +152,7 @@ class ArticleAIProcessor:
     async def _update_existing_article(self, article: Article, feeds: List[Feed]):
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
-            Sei un giornalista sportivo esperto di calciomercato.\n"
+            "Sei un giornalista sportivo esperto di calciomercato.\n"
             "Leggi questi feed di calciomercato, molti sono ripetitivi dello stesso argomento,\n"
             "cerca di capire quali sono gli argomenti principali dal punto di vista del team {team.name},\n"
             "Scrivi un articolo discorsivo, in diverse frasi e non essere ripetitivo.\n"

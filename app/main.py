@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse  # REDIRECT: aggiunto RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -19,6 +19,17 @@ from app.api.jobs import router as jobs_router
 
 
 app = FastAPI()
+
+# REDIRECT: middleware per reindirizzare da top10market.it a www.top10market.it
+@app.middleware("http")
+async def redirect_root_domain(request: Request, call_next):
+    host = request.headers.get("host")
+    if host == "top10market.it":
+        new_url = f"https://www.top10market.it{request.url.path}"
+        if request.url.query:
+            new_url += f"?{request.url.query}"
+        return RedirectResponse(url=new_url, status_code=301)
+    return await call_next(request)
 
 @app.on_event("startup")
 async def startup_event():
@@ -45,7 +56,6 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 templates = Jinja2Templates(directory="app/templates")
 
-
 @app.get("/", response_class=HTMLResponse)
 async def read_home(request: Request, db: AsyncSession = Depends(get_db)):
     stmt = (
@@ -65,7 +75,6 @@ async def read_home(request: Request, db: AsyncSession = Depends(get_db)):
         }
     )
 
-
 @app.get("/team/{team_name}", response_class=HTMLResponse)
 async def read_article(team_name: str, request: Request, db: AsyncSession = Depends(get_db)):
     stmt = (
@@ -84,7 +93,3 @@ async def read_article(team_name: str, request: Request, db: AsyncSession = Depe
         "article.html",
         {
             "request": request,
-            "article": article,
-            "STATIC_URL": STATIC_URL
-        }
-    )

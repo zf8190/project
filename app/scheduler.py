@@ -33,10 +33,9 @@ def schedule_jobs():
     )
     scheduler.add_job(
         lambda: asyncio.create_task(cleanup_feeds_job()),
-        trigger=CronTrigger(minute="10,40", hour="8-22"),
+        trigger=CronTrigger(minute="25,55", hour="7-21"),
         id="cleanup_feeds_job",
         replace_existing=True,
-        next_run_time=None,  # Non esegue subito il job
     )
     scheduler.add_job(
         lambda: asyncio.create_task(enrich_feed_contents_job()),  # Nuovo job

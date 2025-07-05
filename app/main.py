@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse  # REDIRECT: aggiunto RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse  # 🔁 REDIRECT: aggiunto RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -20,7 +20,7 @@ from app.api.jobs import router as jobs_router
 
 app = FastAPI()
 
-# REDIRECT: middleware per reindirizzare da top10market.it a www.top10market.it
+# 🔁 REDIRECT: middleware per reindirizzare da top10market.it a www.top10market.it
 @app.middleware("http")
 async def redirect_root_domain(request: Request, call_next):
     host = request.headers.get("host")
@@ -89,7 +89,7 @@ async def read_article(team_name: str, request: Request, db: AsyncSession = Depe
     if not article:
         raise HTTPException(status_code=404, detail="Articolo non trovato")
 
-     return templates.TemplateResponse(
+    return templates.TemplateResponse(
         "article.html",
         {
             "request": request,

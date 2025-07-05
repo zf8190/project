@@ -89,7 +89,11 @@ async def read_article(team_name: str, request: Request, db: AsyncSession = Depe
     if not article:
         raise HTTPException(status_code=404, detail="Articolo non trovato")
 
-    return templates.TemplateResponse(
+     return templates.TemplateResponse(
         "article.html",
         {
             "request": request,
+            "article": article,
+            "STATIC_URL": STATIC_URL
+        }
+    )

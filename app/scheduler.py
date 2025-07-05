@@ -23,10 +23,11 @@ def schedule_jobs():
         trigger=CronTrigger(minute="5,35", hour="8-22"),
         id="feed_association_job",
         replace_existing=True,
+        next_run_time=None,  # Non esegue subito il job
     )
     scheduler.add_job(
         lambda: asyncio.create_task(process_all_teams_articles_job()),
-        trigger=CronTrigger(minute="15,45", hour="8-22"),
+        trigger=CronTrigger(minute="5,35", hour="8-22"),
         id="process_all_teams_articles_job",
         replace_existing=True,
     )
@@ -35,12 +36,14 @@ def schedule_jobs():
         trigger=CronTrigger(minute="10,40", hour="8-22"),
         id="cleanup_feeds_job",
         replace_existing=True,
+        next_run_time=None,  # Non esegue subito il job
     )
     scheduler.add_job(
         lambda: asyncio.create_task(enrich_feed_contents_job()),  # Nuovo job
         trigger=CronTrigger(minute="20,50", hour="8-22"),
         id="enrich_feed_contents_job",
         replace_existing=True,
+        next_run_time=None,  # Non esegue subito il job
     )
 
 

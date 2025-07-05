@@ -16,6 +16,7 @@ from app.models.team import Team
 from app.models.base import Base
 from app.config import STATIC_URL
 from app.api.jobs import router as jobs_router
+from app.scheduler import scheduler, schedule_jobs
 
 
 app = FastAPI()
@@ -49,6 +50,11 @@ async def startup_event():
         print("✅ Tabelle del database create (se non esistevano)")
     except Exception as e:
         print("❌ Errore nella creazione delle tabelle:", e)
+
+    # Avvio scheduler
+    schedule_jobs()
+    scheduler.start()
+    print("🚀 Scheduler avviato con job:", scheduler.get_jobs())
 
 # Include router e static
 app.include_router(jobs_router, prefix="/api")

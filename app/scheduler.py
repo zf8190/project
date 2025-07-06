@@ -14,7 +14,7 @@ scheduler = AsyncIOScheduler()
 def schedule_jobs():
     scheduler.add_job(
         lambda: asyncio.create_task(feed_ingestion_job()),
-        trigger=CronTrigger(minute="0,30", hour="8-22"),
+        trigger=CronTrigger(minute="0,30", hour="1-23"),
         id="feed_ingestion_job",
         replace_existing=True,
     )
@@ -27,13 +27,13 @@ def schedule_jobs():
     )
     scheduler.add_job(
         lambda: asyncio.create_task(process_all_teams_articles_job()),
-        trigger=CronTrigger(minute="5,35", hour="8-22"),
+        trigger=CronTrigger(minute="5,35", hour="1-23"),
         id="process_all_teams_articles_job",
         replace_existing=True,
     )
     scheduler.add_job(
         lambda: asyncio.create_task(cleanup_feeds_job()),
-        trigger=CronTrigger(minute="25,55", hour="7-21"),
+        trigger=CronTrigger(minute="25,55", hour="0-23"),
         id="cleanup_feeds_job",
         replace_existing=True,
     )

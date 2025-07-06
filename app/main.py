@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 from sqlalchemy import text
+import asyncio
 
 import os
 
@@ -50,6 +51,11 @@ async def startup_event():
         print("✅ Tabelle del database create (se non esistevano)")
     except Exception as e:
         print("❌ Errore nella creazione delle tabelle:", e)
+
+
+    # Imposta l'event loop (esplicito) per APScheduler
+    loop = asyncio.get_event_loop()
+    scheduler.configure(event_loop=loop)
 
     # Avvio scheduler
     schedule_jobs()

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse  # 🔁 REDIRECT: aggiunto RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -7,8 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
 from sqlalchemy import text
-import asyncio
-
 import os
 
 from app.db import get_db, get_engine
@@ -22,7 +20,7 @@ from app.scheduler import scheduler, schedule_jobs
 
 app = FastAPI()
 
-# 🔁 REDIRECT: middleware per reindirizzare da top10market.it a www.top10market.it
+# 🔁 Middleware: Redirect da top10market.it a www.top10market.it
 @app.middleware("http")
 async def redirect_root_domain(request: Request, call_next):
     host = request.headers.get("host")
@@ -33,11 +31,13 @@ async def redirect_root_domain(request: Request, call_next):
         return RedirectResponse(url=new_url, status_code=301)
     return await call_next(request)
 
+# 🚀 Startup: connessione DB + scheduler
 @app.on_event("startup")
 async def startup_event():
     db_url = os.getenv("DATABASE_URL", "❌ DATABASE_URL non trovato")
     print(f"🔧 Stringa di connessione al DB: {db_url}")
 
+    # ✅ Test DB connection
     try:
         async with get_engine().connect() as conn:
             result = await conn.execute(text("SELECT 1"))
@@ -45,6 +45,7 @@ async def startup_event():
     except Exception as e:
         print("❌ Errore nella connessione al database:", e)
 
+    # ✅ Crea tabelle se non esistono
     try:
         async with get_engine().begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -52,28 +53,23 @@ async def startup_event():
     except Exception as e:
         print("❌ Errore nella creazione delle tabelle:", e)
 
-
-    # Imposta l'event loop (esplicito) per APScheduler
-    loop = asyncio.get_event_loop()
-    scheduler.configure(event_loop=loop)
-
-    # Avvio scheduler
+    # ✅ Avvio scheduler
     schedule_jobs()
     scheduler.start()
     print("🚀 Scheduler avviato con job:", scheduler.get_jobs())
 
-# Include router e static
+# 📦 Static & router
 app.include_router(jobs_router, prefix="/api")
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
 templates = Jinja2Templates(directory="app/templates")
 
+# 🏠 Home page
 @app.get("/", response_class=HTMLResponse)
 async def read_home(request: Request, db: AsyncSession = Depends(get_db)):
     stmt = (
         select(Article)
-        .join(Article.team)  # join esplicito per poter ordinare su Team.name
-        .options(joinedload(Article.team))  # carica la relazione team
+        .join(Article.team)
+        .options(joinedload(Article.team))
         .order_by(Team.name)
     )
     result = await db.execute(stmt)
@@ -87,12 +83,13 @@ async def read_home(request: Request, db: AsyncSession = Depends(get_db)):
         }
     )
 
+# 📄 Articolo per team
 @app.get("/team/{team_name}", response_class=HTMLResponse)
 async def read_article(team_name: str, request: Request, db: AsyncSession = Depends(get_db)):
     stmt = (
         select(Article)
         .join(Article.team)
-        .options(joinedload(Article.team))  # eager load anche qui per evitare lazy load error
+        .options(joinedload(Article.team))
         .where(Team.name.ilike(team_name))
     )
     result = await db.execute(stmt)

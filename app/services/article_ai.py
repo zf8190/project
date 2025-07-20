@@ -2,6 +2,8 @@ import os
 import json
 import logging
 from typing import List, Union
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, and_
@@ -11,7 +13,6 @@ from app.models.article import Article
 from app.models.feed import Feed
 
 from openai import AsyncOpenAI
-from zoneinfo import ZoneInfo
 
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MODEL = "gpt-3.5-turbo"
@@ -83,17 +84,7 @@ class ArticleAIProcessor:
         result = await self.db.execute(
             select(Article).where(Article.team_id == team_id)
         )
-        article = result.scalars().first()
-
-        if article and article.last_updated:
-            try:
-                article.last_updated = article.last_updated.astimezone(ZoneInfo("Europe/Rome"))
-            except Exception as e:
-                logger.warning(
-                    f"[Team ID {team_id}] Errore durante la conversione del timezone: {e}"
-                )
-
-        return article
+        return result.scalars().first()
 
     async def _get_unprocessed_feeds_for_team(self, team_id: int) -> List[Feed]:
         result = await self.db.execute(
@@ -125,7 +116,7 @@ class ArticleAIProcessor:
             "Ti fornisco alcuni feed di notizie.\n"
             "Il tuo compito è:\n"
             f"1. Identificare gli argomenti principali dal punto di vista del team {team.name}.\n"
-            "2. Ignorare ripetizioni: se più feed parlano dello stesso tema, considera quell’argomento una sola volta.\n"
+            "2. Ignorare ripetizioni: se più feed parlano dello stesso calciatore, considera quell’argomento una sola volta.\n"
             "3. Scrivere un breve articolo discorsivo, in italiano corretto, chiaro e scorrevole.\n"
             "4. Non citare le fonti.\n"
             "5. Non usare frasi sensazionalistiche.\n"
@@ -157,6 +148,7 @@ class ArticleAIProcessor:
                 team_id=team.id,
                 title=title,
                 content=content,
+                last_updated=datetime.now(ZoneInfo("Europe/Rome"))
             )
             self.db.add(new_article)
             await self.db.commit()
@@ -172,7 +164,7 @@ class ArticleAIProcessor:
             "Ti fornisco alcuni feed di notizie.\n"
             "Il tuo compito è:\n"
             f"1. Identificare gli argomenti principali dal punto di vista del team {article.team_id}.\n"
-            "2. Ignorare ripetizioni: se più feed parlano dello stesso tema, considera quell’argomento una sola volta.\n"
+            "2. Ignorare ripetizioni: se più feed parlano dello stesso calciatore, considera quell’argomento una sola volta.\n"
             "3. Scrivere un breve articolo discorsivo, in italiano corretto, chiaro e scorrevole.\n"
             "4. Non citare le fonti.\n"
             "5. Non usare frasi sensazionalistiche.\n"
@@ -200,6 +192,7 @@ class ArticleAIProcessor:
         try:
             article.title = self._normalize_str(data.get("title", article.title))
             article.content = self._normalize_str(data.get("content", article.content))
+            article.last_updated = datetime.now(ZoneInfo("Europe/Rome"))
             await self.db.commit()
             logger.info(f"[Team {article.team_id}] Articolo aggiornato salvato correttamente.")
         except Exception as e:

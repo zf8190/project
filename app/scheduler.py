@@ -13,7 +13,7 @@ scheduler = AsyncIOScheduler()
 
 def schedule_jobs():
     scheduler.add_job(feed_ingestion_job,
-                      trigger=CronTrigger(minute="40", hour="7,11,15,18-22"),
+                      trigger=CronTrigger(minute="40", hour="7-23"),
                       id="feed_ingestion_job",
                       replace_existing=True)
 
@@ -24,12 +24,12 @@ def schedule_jobs():
                       next_run_time=None)
 
     scheduler.add_job(process_all_teams_articles_job,
-                      trigger=CronTrigger(minute="45", hour="7,11,15,18-22"),
+                      trigger=CronTrigger(minute="45", hour="7-23"),
                       id="process_all_teams_articles_job",
                       replace_existing=True)
 
     scheduler.add_job(cleanup_feeds_job,
-                      trigger=CronTrigger(minute="35", hour="7,11,15,18-22"),
+                      trigger=CronTrigger(minute="35", hour="7-23"),
                       id="cleanup_feeds_job",
                       replace_existing=True)
 

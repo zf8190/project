@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -106,3 +106,8 @@ async def read_article(team_name: str, request: Request, db: AsyncSession = Depe
             "STATIC_URL": STATIC_URL
         }
     )
+
+# 📄 Servizio ads.txt
+@app.get("/ads.txt", include_in_schema=False)
+async def serve_ads_txt():
+    return FileResponse("app/static/ads.txt", media_type="text/plain")

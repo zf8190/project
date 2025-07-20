@@ -11,6 +11,7 @@ from app.models.article import Article
 from app.models.feed import Feed
 
 from openai import AsyncOpenAI
+from zoneinfo import ZoneInfo
 
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 MODEL = "gpt-3.5-turbo"
@@ -79,8 +80,20 @@ class ArticleAIProcessor:
                 await self.db.rollback()
 
     async def _get_article_for_team(self, team_id: int):
-        result = await self.db.execute(select(Article).where(Article.team_id == team_id))
-        return result.scalars().first()
+        result = await self.db.execute(
+            select(Article).where(Article.team_id == team_id)
+        )
+        article = result.scalars().first()
+
+        if article and article.last_updated:
+            try:
+                article.last_updated = article.last_updated.astimezone(ZoneInfo("Europe/Rome"))
+            except Exception as e:
+                logger.warning(
+                    f"[Team ID {team_id}] Errore durante la conversione del timezone: {e}"
+                )
+
+        return article
 
     async def _get_unprocessed_feeds_for_team(self, team_id: int) -> List[Feed]:
         result = await self.db.execute(
@@ -108,10 +121,10 @@ class ArticleAIProcessor:
     async def _generate_new_article(self, team: Team, feeds: List[Feed]):
         combined_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
-            "Sei un giornalista sportivo esperto di calciomercato.\n"
+            f"Sei un giornalista sportivo esperto di calciomercato.\n"
             "Ti fornisco alcuni feed di notizie.\n"
             "Il tuo compito è:\n"
-            "1. Identificare gli argomenti principali dal punto di vista del team {team.name}.\n"
+            f"1. Identificare gli argomenti principali dal punto di vista del team {team.name}.\n"
             "2. Ignorare ripetizioni: se più feed parlano dello stesso tema, considera quell’argomento una sola volta.\n"
             "3. Scrivere un breve articolo discorsivo, in italiano corretto, chiaro e scorrevole.\n"
             "4. Non citare le fonti.\n"
@@ -155,16 +168,15 @@ class ArticleAIProcessor:
     async def _update_existing_article(self, article: Article, feeds: List[Feed]):
         combined_new_text = "\n\n".join([f"Titolo: {f.title}\nTesto: {f.content}" for f in feeds])
         prompt = (
-            "Sei un giornalista sportivo esperto di calciomercato.\n"
+            f"Sei un giornalista sportivo esperto di calciomercato.\n"
             "Ti fornisco alcuni feed di notizie.\n"
             "Il tuo compito è:\n"
-            "1. Identificare gli argomenti principali dal punto di vista del team {team.name}.\n"
+            f"1. Identificare gli argomenti principali dal punto di vista del team {article.team_id}.\n"
             "2. Ignorare ripetizioni: se più feed parlano dello stesso tema, considera quell’argomento una sola volta.\n"
             "3. Scrivere un breve articolo discorsivo, in italiano corretto, chiaro e scorrevole.\n"
             "4. Non citare le fonti.\n"
             "5. Non usare frasi sensazionalistiche.\n"
             "6. Usa frasi diverse tra loro, evita ripetizioni.\n"
-            #f"feed_accorpati:\n{article.content}\n\n"
             f"feed_nuovi:\n{combined_new_text}\n\n"
             "Rispondi esclusivamente con un singolo oggetto JSON valido, senza testo aggiuntivo o spiegazioni, "
             "nel formato {'title': ..., 'content': ...}."
@@ -195,22 +207,10 @@ class ArticleAIProcessor:
             await self.db.rollback()
 
     async def cleanup_feeds(self):
-        """
-        - Elimina i feed processed = False con team associati (team_id not None).
-        - Reimposta processed = False per i feed processed = True con team associati.
-        """
         try:
-            # Elimina feed processed=False con team (team_id is not None)
-            delete_stmt = delete(Feed).where(
-                and_(
-                    Feed.processed == True#,
-                    #Feed.team_id != None,
-                    #Feed.team_id != 0
-                )
-            )
+            delete_stmt = delete(Feed).where(Feed.processed == True)
             await self.db.execute(delete_stmt)
 
-            # Reimposta processed=False per feed processed=True con team associati (team_id not None)
             update_stmt = update(Feed).where(
                 and_(
                     Feed.processed == True,

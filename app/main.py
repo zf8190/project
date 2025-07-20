@@ -70,7 +70,7 @@ async def read_home(request: Request, db: AsyncSession = Depends(get_db)):
         select(Article)
         .join(Article.team)
         .options(joinedload(Article.team))
-        .order_by(Team.name)
+        .order_by(Article.team_id)
     )
     result = await db.execute(stmt)
     articles = result.scalars().all()

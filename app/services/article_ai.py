@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from typing import List, Union
-from datetime import datetime
+from datetime import datetime,timedelta
 from zoneinfo import ZoneInfo
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -148,7 +148,7 @@ class ArticleAIProcessor:
                 team_id=team.id,
                 title=title,
                 content=content,
-                last_updated=datetime.now(ZoneInfo("Europe/Rome"))
+                last_updated=datetime.now(ZoneInfo("Europe/Rome")) + timedelta(hours=2)
             )
             self.db.add(new_article)
             await self.db.commit()
@@ -192,7 +192,7 @@ class ArticleAIProcessor:
         try:
             article.title = self._normalize_str(data.get("title", article.title))
             article.content = self._normalize_str(data.get("content", article.content))
-            article.last_updated = datetime.now(ZoneInfo("Europe/Rome"))
+            article.last_updated = datetime.now(ZoneInfo("Europe/Rome")) + timedelta(hours=2)
             await self.db.commit()
             logger.info(f"[Team {article.team_id}] Articolo aggiornato salvato correttamente.")
         except Exception as e:
